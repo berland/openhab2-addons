@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<thing:thing-descriptions bindingId="daikin" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:thing="https://openhab.org/schemas/thing-description/v1.0.0"
+	xsi:schemaLocation="https://openhab.org/schemas/thing-description/v1.0.0 https://openhab.org/schemas/thing-description-1.0.0.xsd">
+
+	<thing-type id="filter">
+		<label>HabPanel Filter</label>
+		<description>HabPanel Filter</description>
+
+		<channels>
+		</channels>
+
+		<config-description>
+			<parameter name="groupName" type="text" required="true">
+				<label>Group Name</label>
+				<description>The Group Name according to which to filter out items.</description>
+			</parameter>
+		</config-description>
+	</thing-type>
+
+</thing:thing-descriptions>
