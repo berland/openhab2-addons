@@ -177,8 +177,7 @@ public class FilteredItemResource implements RESTResource {
         logger.info("Received HTTP GET request at '{}'", uriInfo.getPath());
 
         Stream<EnrichedItemDTO> itemStream = getItems(type, tags).stream() //
-                .map(item -> EnrichedItemDTOMapper.map(item, recursive, null, uriInfo.getBaseUri(), locale)) //
-                .peek(dto -> dto.editable = isEditable(dto.name));
+                .map(item -> EnrichedItemDTOMapper.map(item, recursive, null, uriInfo.getBaseUri(), locale));
         itemStream = itemStream.filter(item -> item.groupNames.contains(HabPanelFilterConfig.FILTER_GROUP_NAME));
 
         itemStream = dtoMapper.limitToFields(itemStream, fields);
@@ -205,7 +204,6 @@ public class FilteredItemResource implements RESTResource {
         if (item != null) {
             logger.debug("Received HTTP GET request at '{}'.", uriInfo.getPath());
             EnrichedItemDTO dto = EnrichedItemDTOMapper.map(item, true, null, uriInfo.getBaseUri(), locale);
-            dto.editable = isEditable(dto.name);
             return JSONResponse.createResponse(Status.OK, dto, null);
         } else {
             logger.info("Received HTTP GET request at '{}' for the unknown item '{}'.", uriInfo.getPath(), itemname);
@@ -265,10 +263,6 @@ public class FilteredItemResource implements RESTResource {
         }
 
         return items;
-    }
-
-    private boolean isEditable(String itemName) {
-        return managedItemProvider.get(itemName) != null;
     }
 
     @Override

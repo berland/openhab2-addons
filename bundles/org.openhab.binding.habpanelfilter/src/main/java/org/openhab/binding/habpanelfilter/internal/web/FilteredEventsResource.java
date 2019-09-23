@@ -36,6 +36,7 @@ import org.eclipse.smarthome.core.items.events.GroupItemStateChangedEvent;
 import org.eclipse.smarthome.core.items.events.ItemStateChangedEvent;
 import org.eclipse.smarthome.core.items.events.ItemStateEvent;
 import org.eclipse.smarthome.core.items.events.ItemUpdatedEvent;
+import org.eclipse.smarthome.core.types.State;
 import org.eclipse.smarthome.io.rest.LocaleService;
 import org.eclipse.smarthome.io.rest.RESTResource;
 import org.eclipse.smarthome.io.rest.core.item.EnrichedItemDTO;
@@ -55,7 +56,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -148,6 +151,8 @@ public class FilteredEventsResource implements RESTResource {
         return eventOutput;
     }
 
+    private Map<String, State> itemStates = new HashMap<>();
+
     public void broadcastEvent(final Event event) {
         executorService.execute(new Runnable() {
             private @Nullable Item getItem(String itemname) {
@@ -177,17 +182,23 @@ public class FilteredEventsResource implements RESTResource {
                         return null;
                     }
 
-                    EnrichedItemDTO dto = EnrichedItemDTOMapper.map(item, true, null, null, Locale.US);
-                    eventBean.payload = (new Gson()).toJson(dto);
+                    if (!itemStates.containsKey(item.getName()))
+                        itemStates.put(item.getName(), item.getState());
 
-                    OutboundEvent.Builder eventBuilder = new OutboundEvent.Builder();
-                    OutboundEvent outboundEvent = eventBuilder.name("message").mediaType(MediaType.APPLICATION_JSON_TYPE)
-                            .data(eventBean).build();
+                    if (!itemStates.get(item.getName()).equals(item.getState())) {
+                        itemStates.replace(item.getName(), item.getState());
 
-                    return outboundEvent;
-                } else {
-                    return null;
+                        EnrichedItemDTO dto = EnrichedItemDTOMapper.map(item, true, null, null, Locale.US);
+                        eventBean.payload = (new Gson()).toJson(dto);
+
+                        OutboundEvent.Builder eventBuilder = new OutboundEvent.Builder();
+                        OutboundEvent outboundEvent = eventBuilder.name("message").mediaType(MediaType.APPLICATION_JSON_TYPE)
+                                .data(eventBean).build();
+
+                        return outboundEvent;
+                    }
                 }
+                return null;
             }
 
             @Override
